@@ -6,7 +6,7 @@ A personal, agent-agnostic library of AI skills. Each skill is a directory under
 
 | Skill | What it does |
 |---|---|
-| [`humanize-text`](skills/humanize-text/SKILL.md) | Polishes AI-flavored drafts into natural human writing — breaks rule-of-three tics, template paragraphs, and over-smooth coherence without touching facts. Language-agnostic (Chinese, English, mixed). Docs in Chinese. |
+| [`humanize-text`](skills/humanize-text/SKILL.md) | Polishes AI-flavored drafts into natural human writing — breaks rule-of-three tics, template paragraphs, and over-smooth coherence without touching facts. Language-agnostic (Chinese, English, mixed). |
 
 ## Quick start
 

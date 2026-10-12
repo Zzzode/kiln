@@ -1,184 +1,184 @@
 ---
 name: humanize-text
-description: 深度打磨文本，去除 AI 机器感，让文字读起来更像人写的。当用户要求"去 AI 味"、"让文字更自然"、"人性化"、"humanize"，或粘贴一段 AI 味很重的草稿要求改写得自然时触发。与语言无关（中文、英文、混合）。
+description: Deeply polish text to remove AI machine-feel and make it read more human. Trigger when the user asks to "remove AI flavor," "make it sound human-written," "make text more natural," "humanize," or pastes an AI-sounding draft to be rewritten naturally. Language-agnostic (Chinese, English, mixed).
 ---
 
-# 人性化文本：去除 AI 机器感，注入人的声音
+# Humanize Text: Remove AI Machine-Feel, Add Human Voice
 
-## 这个 skill 做什么
+## What this skill does
 
-AI 检测器（如腾讯朱雀、GPTZero）检测的不是"内容从哪来"。它们标记的是 AI 文本的**统计特征**：低困惑度（每个下一词都太好预测）、低突发性（句子长度太均匀）、以及过于顺滑连贯的行文。但这些统计特征只是故事的一半。真正让文字在人类读来像机器写的，主要是**结构和修辞习惯**——三段式排比、模板化的段落形状、过度的逻辑路标，以及缺乏真实观点。
+AI detectors (e.g. Tencent Zhuque, GPTZero) do not check "where the content came from." They flag **statistical signatures** of AI text: low perplexity (every next word is too predictable), low burstiness (sentence lengths are too uniform), and prose that is too smoothly coherent. But those statistics are only half the story. What actually makes text read as machine-written to a human is mostly **structural and rhetorical habit** — three-part parallelism, template paragraph shapes, over-signposted logic, and the absence of any real point of view.
 
-因此这个 skill 在两条战线上工作：
-- **减去** AI 特征（统计上的顺滑*和*结构上的模板）。
-- **加上**优秀人类写作的正面品质——这些是任何躲避检测器的技巧本身无法提供的：具体的细节、一致的语态、真实的立场，以及真实头脑运作时的小瑕疵。
+So this skill works on two fronts:
+- **Subtract** the AI signatures (statistical smoothness *and* structural templates).
+- **Add** the positive qualities of good human writing that no detector-dodging trick supplies on its own: concrete detail, a consistent voice, genuine stance, and the small imperfections of a real mind at work.
 
-目标是让文字读起来像扎实的人类写作——**不改变意义和事实**。降低检测器分数是"写得更像人"的*副作用*，而非目标。不要为某个特定检测器优化；要为真正的自然度优化，这能泛化到所有检测器。
+The goal is text that reads like strong human writing — **without changing meaning or facts**. Reducing detector scores is a *side effect* of writing more like a person, not the target. Do not optimize for a specific detector; optimize for genuine naturalness, which generalizes across all of them.
 
-关键术语：
-- **困惑度（Perplexity）**：文本的可预测程度。AI 每一步都选概率最高的下一词，所以输出太顺滑（低困惑度）。人类写作有出人意料的用词选择且富于变化（高且波动的困惑度）。
-- **突发性（Burstiness）**：句子长度/复杂度的变化程度。AI 倾向写长度相近的句子（低突发性）；人类长短句交替（高突发性）。
+Key terms:
+- **Perplexity**: how predictable the text is. AI picks the highest-probability next word at every step, so its output is too smooth (low perplexity). Human writing has surprising word choices and varies (high, fluctuating perplexity).
+- **Burstiness**: how much sentence length/complexity varies. AI tends to write sentences of similar length (low burstiness); humans alternate long and short (high burstiness).
 
-## 语言处理（最先做）
+## Language handling (do this first)
 
-这个 skill 与语言无关。改写之前：
-1. 识别输入的主导语言（如中文、英文或混合）。
-2. 将下面的语言中立原则应用于所有语言。
-3. 应用"AI 陈词滥调"和"示例措辞"列表时，使用对应语言的列表（中文文本用中文列表，英文文本用英文列表）。混合文本两者都用。
-4. 除非用户明确要求，绝不把文本翻译成另一种语言。在原语言内改写。
+This skill is language-agnostic. Before rewriting:
+1. Detect the dominant language of the input (e.g. Chinese, English, or mixed).
+2. Apply the language-neutral principles below to ALL languages.
+3. When applying the "AI cliché" and "example phrasing" lists, use the matching language's list (Chinese list for Chinese text, English list for English text). For mixed text, apply both.
+4. Never translate the text into another language unless the user explicitly asks. Rewrite within the original language.
 
-## 使用边界（必须遵守）
+## Usage boundaries (must follow)
 
-1. 将此定位为**写作质量工具**：打磨用户自己的草稿、译文或 AI 辅助草稿，使其读起来更自然。
-2. 如果用户明确想把 AI 代写的内容伪装成原创以规避学术诚信检查，指出诚信风险，并把焦点保持在"提升自然写作质量"上，而非"欺骗检测器"。
-3. 替换同义词（如 "therefore" → "so"）骗不了检测器，也不是这个 skill 的方法。这个 skill 改变的是**底层模式**：句子节奏、结构、逻辑起伏、观点和语态。
+1. Position this as a **writing-quality tool**: polishing the user's own drafts, translations, or AI-assisted drafts to read more naturally.
+2. If the user explicitly wants to disguise AI-ghostwritten content as original work to evade academic-integrity checks, flag the integrity risk and keep the focus on "improving natural writing quality," not "deceiving a detector."
+3. Swapping synonyms (e.g. "therefore" → "so") does not fool detectors and is not this skill's method. This skill changes the **underlying patterns**: sentence rhythm, structure, logical undulation, point of view, and voice.
 
-## 工作流程
+## Workflow
 
-1. **识别语言**（见上）并**判断文体**：学术/报告、博客/社交、小说/散文、邮件/日常、**技术类（代码、代码注释、API 文档、工程文档、RFC）**。不同文体对"人的声音"的接受度不同，*适用的人声类型*也不同（学术不能太口语化；社交可以更活泼；**技术语态是专家判断和克制，不是口语化——见下面的专门章节**）。
-2. **意义锁定**：改写前，列出原文的核心论点、关键事实、数字、专有名词和引用。这些是**红线——绝不改动或编造**。
-3. **确立一个语态**：确定一个单一叙述者——语域（正式/中性/随意）、立场（自信/审慎/怀疑）、专业水平——并在全文中保持一致。中途切换人格的文本读起来*更不*像人写的。语态一致性高于下面的任何单条规则。
-4. **逐段改写**：应用下面的规则。可以合并/拆分句子、重排段落、把列表改写成散文（或反过来）、增删过渡——但绝不改变论点和事实。
-5. **自检**：过一遍检查清单，特别确认是否有事实被改动、是否有信息被编造。
-6. **交付**：默认输出完整改写后的文本；如果用户要求，附上简短的"改了什么"说明。
+1. **Detect language** (see above) and **identify genre**: academic/report, blog/social, fiction/prose, email/casual, **technical (code, code comments, API docs, engineering docs, RFCs)**. Genres differ in how much "human voice" is acceptable and *what kind* of human voice applies (academic cannot go too colloquial; social can be livelier; **technical voice is expert judgment and restraint, not colloquialism — see the dedicated section below**).
+2. **Meaning lock**: before rewriting, list the original's core claims, key facts, numbers, proper nouns, and citations. These are **red lines — never alter or fabricate them**.
+3. **Establish one voice**: decide on a single narrator — register (formal/neutral/casual), stance (confident/measured/skeptical), and level of expertise — and hold it consistently through the whole piece. A text that shifts persona mid-way reads *less* human, not more. Voice-consistency outranks any single rule below.
+4. **Rewrite paragraph by paragraph**: apply the rules below. You may merge/split sentences, reorder paragraphs, restructure lists into prose (or vice versa), and add/remove transitions — but never change claims or facts.
+5. **Self-check**: go through the checklist, especially whether any fact was altered or any information was invented.
+6. **Deliver**: by default output the full rewritten text; if the user asks, append a brief "what changed" note.
 
-## 改写规则
+## The rewriting rules
 
-前三条规则针对**结构和修辞模板**——当今最明显的 AI 痕迹——视为最高优先级。接下来四条覆盖统计上的顺滑。最后两条是要添加的正面人类品质，以及防止过度修正的护栏。
+The first three rules attack the **structural and rhetorical templates** that are the loudest AI tells today — treat them as highest priority. The next four cover statistical smoothness. The last two are the positive human qualities to add, and the guardrails against over-correcting.
 
-### 规则 1 · 打破结构和修辞模板（最高价值的修正）
+### Rule 1 · Break structural and rhetorical templates (highest-value fix)
 
-这是大多数可被检测为 AI 的写作露馅的地方。找出并变化：
-- **三段式排比（"三的法则"）**："清晰、简洁、可信" / "快速、稳定、可扩展" / "高效、稳定、可扩展"。这是当代最强的单一 AI 痕迹。打破三元组：用两项，或四项，或不均匀地揉进一个句子里。
-- **"不是 X，而是 Y" / "不仅是……更是……"句式**以及其他被滥用的对比脚手架。用一次可以；反复出现就是癖习。
-- **模板化段落形状**：不是每个段落都该是"主题句 + 三个支撑点 + 收尾"。让一些段落只有一句直白的观察；让另一些段落散漫一些。
-- **格式反射**：不要条件反射式地加粗关键词、给每节加标题、把每个想法都变成项目符号列表。如果原文是一面列表墙，把真正相连的想法改写成散文。如果列表项都是同样的长度和语法形状，打破这种对称。
-- **破折号过度使用**（及其等价物）：AI 爱用破折号追加一个精巧的事后想法。变化标点；有时直接开一个新句子。
+This is where most AI-detectable writing gives itself away. Hunt down and vary:
+- **Three-part parallelism ("rule of three")**: "clear, concise, and credible" / "fast, stable, and scalable" / "高效、稳定、可扩展". This is the single strongest modern AI tell. Break the triad: use two items, or four, or fold them into a sentence unevenly.
+- **The "not X, but Y" / "it's not just… it's…" frame** and other over-used contrast scaffolds. Fine once; a tic when it recurs.
+- **Template paragraph shape**: not every paragraph should be "topic sentence + three supporting points + wrap-up." Let some paragraphs be one blunt observation; let others wander.
+- **Formatting reflexes**: don't reflexively bold key terms, add a heading to every section, or convert every idea into a bulleted list. If the source is a wall of bullets, prose out the ones that are really connected thoughts. If list items are all the same length and grammatical shape, break that symmetry.
+- **Em-dash overuse** (and its equivalents): AI leans on the dash to append a neat afterthought. Vary punctuation; sometimes just start a new sentence.
 
-### 规则 2 · 打破句子节奏（对抗低突发性）
+### Rule 2 · Break sentence rhythm (counter low burstiness)
 
-- 刻意交替长短句：复杂长句后面跟一个短句。
-- 允许用极短句强调（"就这样。" / "道理很清楚。"）。
-- 避免连续 3 句以上结构或开头词相同。
+- Deliberately alternate long and short sentences: follow a complex long sentence with a short one.
+- Allow very short sentences for emphasis ("That's it." / "The point is clear.").
+- Avoid 3+ consecutive sentences with the same structure or opening word.
 
-### 规则 3 · 拆除逻辑路标（对抗过度顺滑的连贯）
+### Rule 3 · De-signpost the logic (counter over-smooth coherence)
 
-- 去掉机械脚手架（"第一/第二/第三/最后"）；用自然过渡或直接切入。
-- 理解总结句为什么读起来像 AI：它在重复刚说过的话。所以不要只禁掉"总之"——要砍掉冗余的复述本身。如果一个段落只是在重说上一段，删掉它。
-- 允许偶尔的视角跳跃：一个具体例子、一个反问、一句简短的题外话。不是每个段落都必须整齐地前后衔接；人类允许一些段落突兀或简短。
+- Remove mechanical scaffolding ("first / second / third / finally"); use natural transitions or dive straight in.
+- Understand *why* summary sentences read as AI: they restate what was just said. So don't just ban "in conclusion" — cut the redundant recap itself. If a paragraph only re-says the previous one, delete it.
+- Allow occasional perspective jumps: a concrete example, a rhetorical question, a short aside. Not every paragraph must link neatly back and forth; humans allow some to be abrupt or short.
 
-### 规则 4 · 增加用词意外感（对抗低困惑度）
+### Rule 4 · Increase word-choice surprise (counter low perplexity)
 
-- 在不损害准确性的前提下，把泛泛的词换成更具体、更生动或稍微不那么常见的词。
-- 砍掉高频 AI 填充词（见下面各语言的陈词滥调列表）。
-- 意思仍然到位时，保留一点口语化或略"不标准"的措辞。
+- Without hurting accuracy, replace generic words with more specific, vivid, or slightly less-common ones.
+- Cut high-frequency AI filler (see per-language cliché list below).
+- Keep a little colloquial or slightly "non-standard" phrasing when the meaning still lands.
 
-### 规则 5 · 加入具体细节和立场（正面的人类信号）
+### Rule 5 · Add concrete detail and stance (the positive human signal)
 
-去掉 AI 痕迹还不够——去陈词滥调化的文本仍可能空洞。好的人类写作是*具体的*、*有担当的*：
-- 优先具体例子、名字、数字和亲历细节，而非泛泛陈述——**但只用原文已有或可安全推断的细节；绝不编造事实**（见意义锁定）。
-- 让写作者的知识边界显露：一句真诚的"这部分我不太确定"、一个收窄的论断、一小段离题、一个未解决的张力。真实的头脑不是处处自信的。
-- 在文体允许时（见规则 6 的约束），表达真实立场，而不是把一切都对冲成中性的平衡。
+Removing AI tells is not enough — de-cliché'd text can still be hollow. Good human writing is *specific* and *committed*:
+- Prefer concrete examples, names, numbers, and lived detail over generic statements — **but only detail already present in or safely inferable from the source; never invent facts** (see meaning lock).
+- Let the writer's knowledge boundary show: a genuine "this part I'm less sure about," a narrowed claim, a small digression, an unresolved tension. Real minds are not uniformly confident.
+- Where the genre permits (see Rule 6's constraint), take a real position instead of hedging everything into neutral balance.
 
-### 规则 6 · 注入观点和语态——在文体的限度内
+### Rule 6 · Inject viewpoint and voice — within the genre's limits
 
-- **只在文体允许观点存在的地方**加入第一人称判断或态度（"我认为"、"以我的经验"、"说实话"）。博客、随笔、邮件、评论：可以。
-- **硬性约束（解决与意义锁定的冲突）：**对于事实性/报告/学术类文体，注入原文没有的第一人称立场是*编造观点*，被禁止。在这些文体中，只通过节奏、结构和用词（规则 1–4）实现人的语态——不要制造观点或感受。
-- 让情绪和自信在段落间自然起伏——这里自信，那里试探——而非扁平的、处处均衡的语调。但全程保持*同一个叙述者*（工作流程规则 3）。
-- 变化修辞：混用比喻、类比、例子、对比；不要只写扁平的陈述句，也不要重复同一种手法。
+- Add first-person judgment or attitude **only where the genre allows an opinion to exist** ("I think," "in my experience," "honestly"). Blog, essay, email, opinion: yes. 
+- **Hard constraint (resolves the conflict with meaning lock):** for factual/report/academic genres, injecting a first-person stance the source did not contain is *fabrication of a viewpoint* and is forbidden. In those genres, achieve human voice through rhythm, structure, and word choice (Rules 1–4) only — not by manufacturing opinions or feelings.
+- Let emotion and confidence fluctuate naturally between paragraphs — confident here, tentative there — rather than a flat, uniformly balanced tone. But keep it the *same narrator* throughout (Rule 3 of the workflow).
+- Vary rhetoric: mix metaphor, analogy, example, contrast; don't write only flat declaratives, and don't repeat one device.
 
-### 规则 7 · 不要表演"人性"（防过度修正的护栏）
+### Rule 7 · Don't perform "humanness" (the anti-overcorrection guardrail)
 
-过度修正会产生*新的*可检测模式。避免：
-- 不要到处撒"说实话 / 平心而论 / honestly / to be fair"。满页第一人称填充词本身就是当前的一种 AI 痕迹。这种标记少用，用在真正有意义的地方。
-- 不要机械地长短长短打拍子；那种规律性只是另一种均匀。变化要多样。
-- 不要堆砌术语冒充专业；只在真正需要时正确使用术语。学术文本保持严谨——主要打破脚手架和重复句法，不要降智。
-- 自然度来自减法和具体性，不是靠堆语态标记。
+Over-correcting produces a *new* detectable pattern. Avoid it:
+- Do not sprinkle "honestly / to be fair / 说实话 / 其实吧" everywhere. A page full of first-person filler is itself a current AI tell. Use such markers rarely, where they carry real meaning.
+- Don't mechanically metronome long-short-long-short; that regularity is just a different uniformity. Vary the variation.
+- Don't stack jargon to fake expertise; use terminology only when genuinely needed, and correctly. Keep academic text rigorous — mainly break scaffolding and repetitive syntax, don't dumb it down.
+- Naturalness comes from subtraction and specificity, not from piling on voice markers.
 
-## 技术写作：专家的人声（代码、注释、API/工程文档、RFC）
+## Technical writing: the expert's human voice (code, comments, API/engineering docs, RFCs)
 
-真正的专家写的技术内容，读起来与 AI 生成的技术内容有明显区别——但**不是**博客散文那种区别。这里不要动用博客工具箱。口语化感叹、撒第一人称填充词、故意打破术语一致性、把列表散文化，对技术文本全是**错的**，只会让它更糟。
+Technical content written by a real expert reads unmistakably differently from AI-generated technical content — but **not** in the way blog prose does. Do not reach for the blog toolkit here. Colloquial interjections, sprinkled first-person filler, deliberately broken term consistency, and prose-ified lists are all **wrong** for technical text and will make it worse.
 
-技术写作中的 AI 痕迹不同：它是**正确但空洞**——面面俱到、轻重不分、对冲到寡淡、毫无判断。它解释代码*做什么*（代码自己已经展示了），把每个选项都等权重地列出来，从不说自己实际会选哪个，从不承认局限，用繁文缛节填充一切。专家的语态正与这种空洞相反。
+The AI tell in technical writing is different: it is **correct but hollow** — comprehensive, evenly-weighted, hedged into blandness, and utterly without judgment. It explains *what* the code does (which the code already shows), lists every option with equal emphasis, never says which one it would actually pick, never admits a limit, and pads everything with ceremony. An expert's voice is the opposite of that hollowness.
 
-**专家的人声由什么构成——加入这些：**
-- **判断和立场。** 说出什么真正重要、你会选什么、哪里是坑。"这里用 X；Y 每次调用都分配内存。"而不是把五个选项中性地编目，仿佛它们平等。
-- **携带非显然信息的注释。** 真正的专家注释*为什么*、不变量、坑、上游的怪癖——绝不重述下一行代码明摆着的事。删掉 "// 计数器加一"；保留 "// 必须在此之前加锁，否则会与 reaper 线程竞争"。
-- **诚实的边界。** "超过约 1 万条后性能下降。""未在并发写入下测试。""这是针对 <依赖> 某个 bug 的变通方案；修复后移除。"真实的头脑承认自己不知道什么、哪里脆弱。AI 假装一切都同样可靠。
-- **具体细节而非泛泛填充。** 真实的函数/变量名、真实的失败模式、真实的数字——不是"多种因素"或"在某些情况下"。
+**What the expert's human voice is made of — add these:**
+- **Judgment and stance.** State what actually matters, what you'd choose, what's a trap. "Use X here; Y allocates on every call." Not a neutral catalogue of all five options as if they were equal.
+- **Comments that carry non-obvious information.** A real expert comments the *why*, the invariant, the gotcha, the upstream quirk — never restates what the next line plainly does. Delete "// increment counter"; keep "// must lock before this or we race with the reaper thread."
+- **Honest boundaries.** "This degrades past ~10k entries." "Not tested under concurrent writes." "This is a workaround for a bug in <dep>; remove when fixed." Real minds admit what they don't know and where things are fragile. AI pretends everything is uniformly solid.
+- **Concrete specifics over generic filler.** Real function/variable names, real failure modes, real numbers — not "various factors" or "in certain cases."
 
-**专家的语态要求你保留的（不要把这些"人性化"掉）：**
-- **术语一致性。** 一个概念，一个名字，贯穿始终。不要为了"意外感"变化词汇（技术文本暂停规则 4）。术语不一致是业余痕迹，不是人类痕迹。
-- **结构精确性。** 参数列表、枚举、配置表、步骤序列**应该**统一且完整。不要打破列表对称或把真正的列表散文化。规则 1 的"打破列表"针对的是修辞性填充，不是真实的结构化数据。
-- **必要的事实中立。** 不要在规范、合规文档或数据描述中注入第一人称观点（规则 6 的硬性约束完全适用）。
+**What the expert's voice requires you to KEEP (do not "humanize" these away):**
+- **Term consistency.** One concept, one name, everywhere. Do NOT vary vocabulary for "surprise" (Rule 4 is suspended for technical text). Inconsistent terminology is an amateur tell, not a human one.
+- **Structural precision.** Parameter lists, enums, config tables, and step sequences **should** be uniform and complete. Do NOT break list symmetry or prose-out a genuine list. Rule 1's "break the list" applies to rhetorical padding, not to real structured data.
+- **Factual neutrality where required.** Do NOT inject first-person opinion into a spec, a compliance doc, or a data description (Rule 6's hard constraint fully applies).
 
-**仍然要去掉的（这些在任何文体中都是 AI 痕迹）：**
-- 空洞的繁文缛节和脚手架："在本节中我们将探讨……"、"值得注意的是……"、"首先/其次/最后"、"综上所述"、"本文档旨在……"。
-- 修辞性三段式和浮夸框架（"健壮、可扩展、可维护"）。
-- 重述显而易见的事；把每句话都对冲到不表态；浮夸的结论。
+**What to still remove (these are AI tells in any genre):**
+- Empty ceremony and scaffolding: "In this section we will explore…", "It is important to note that…", "首先/其次/最后", "综上所述", "This document aims to…".
+- Rhetorical rule-of-three and grandiose framing ("robust, scalable, and maintainable").
+- Restating the obvious; hedging every sentence into non-commitment; grandiloquent conclusions.
 
-一句话：对技术文本，人的语态来自**判断、对局限的诚实、以及有纪律的精确**——加入这些，砍掉繁文缛节，保留一切让内容精确的东西。这更接近*磨砺*而非*放松*。
+In one line: for technical text, the human voice comes from **judgment, honesty about limits, and disciplined precision** — add those, cut the ceremony, and keep everything that makes the content exact. This is closer to *sharpening* than to *loosening*.
 
-## 可选：风格迁移（有样本时的最强杠杆）
+## Optional: style transfer (strongest lever when available)
 
-如果用户提供了自己写作（或目标作者）的样本，这胜过一切通用规则。拿到样本时：
-1. 读出具体的、可迁移的特征：典型句长和方差、爱用的连接词、标点习惯、正式程度、是否用标题/列表、对冲程度、反复出现的词汇。
-2. 让改写对齐*这些具体特征*，而非上面的通用默认值。
-3. 仍然遵守意义锁定和所有护栏。
+If the user provides a sample of their own writing (or a target author's), this beats every generic rule. When a sample is given:
+1. Read it for concrete, transferable traits: typical sentence length and variance, favorite connectives, punctuation habits, formality, whether they use headings/lists, how much they hedge, recurring vocabulary.
+2. Align the rewrite to *those specific* traits rather than the generic defaults above.
+3. Still honor the meaning lock and all guardrails.
 
-没有样本时，按通用规则进行；重要稿件可以考虑问用户有没有参考样本。
+If no sample is given, proceed with the general rules and consider asking whether the user has a reference sample for important pieces.
 
-## 各语言参考列表
+## Per-language reference lists
 
-要砍掉或减少的 AI 陈词滥调/填充词：
-- **中文**：综上所述、总而言之、值得注意的是、在当今社会、随着……的发展、首先/其次/再次/最后、不难看出、由此可见、归根结底、说到底；以及"赋能、抓手、闭环、维度、生态、颗粒度、心智、对齐"这类被滥用的黑话；机械并列的"不仅……而且……""既……又……""一方面……另一方面"；过度工整的四字排比堆砌；"……的同时"作连接词。
+AI cliché / filler to cut or reduce:
+- **Chinese**: 综上所述、总而言之、值得注意的是、在当今社会、随着……的发展、首先/其次/再次/最后、不难看出、由此可见、归根结底、说到底；以及"赋能、抓手、闭环、维度、生态、颗粒度、心智、对齐"这类被滥用的黑话；机械并列的"不仅……而且……""既……又……""一方面……另一方面"；过度工整的四字排比堆砌;"……的同时"作连接词。
 - **English**: "In conclusion," "Overall," "It is worth noting that," "In today's world," "With the rapid development of," "Firstly/Secondly/Finally," "Moreover," "Furthermore," "It is important to note that," "Delve into," "In the realm of," "Ultimately," "At the end of the day," "It's not just X, it's Y," "That said," and reflexive rule-of-three lists.
 
-自然的第一人称插入语（示例——**少用**，见规则 7）：
-- 中文：我觉得、在我看来、我的经验是、说实话、其实吧、说白了；口语场景可用语气词（吧/啊/呗/嘛）、甩短句、省略主语。
+Natural personal-voice insertions (examples — **use sparingly**, see Rule 7):
+- Chinese: 我觉得、在我看来、我的经验是、说实话、其实吧、说白了；口语场景可用语气词（吧/啊/呗/嘛）、甩短句、省略主语。
 - English: "I think," "in my experience," "honestly," "to be fair," "the way I see it," "here's the thing."
 
-## 文体强度指南
+## Genre intensity guide
 
-- **学术论文/正式报告**：强调规则 1、2、3、7；**规则 6 的硬性约束适用——不注入第一人称观点。** 保持严谨；主要杀模板、脚手架和重复句法。
-- **博客/社交**：所有规则开启；偏向 4、5、6（具体、个人、有观点）——同时遵守规则 7 的护栏。
-- **小说/散文**：强调 1、2、4、5；追求节奏、意象和具体感官细节。
-- **邮件/日常**：轻度应用；聚焦规则 2 和 6，追求自然、有人味的语调。
-- **技术类（代码/注释/API 与工程文档/RFC）**：**使用上面的技术专门章节，不用博客工具箱。** 暂停规则 4（保持术语一致），不打破真实列表（规则 1 只针对修辞性填充），遵守规则 6 对规范的无观点约束。这里的人的语态 = 专家判断、诚实的局限、精确；工作是砍繁文缛节、加"为什么"，不是放松或口语化。
+- **Academic paper / formal report**: emphasize rules 1, 2, 3, 7; **Rule 6's hard constraint applies — no injected first-person opinion.** Stay rigorous; mainly kill templates, scaffolding, and repetitive syntax.
+- **Blog / social**: all rules on; lean into 4, 5, 6 (specific, personal, opinionated) — while respecting the Rule 7 guardrail.
+- **Fiction / prose**: emphasize 1, 2, 4, 5; chase rhythm, imagery, and concrete sensory detail.
+- **Email / everyday**: apply lightly; focus on rules 2 and 6 for a natural, human tone.
+- **Technical (code / comments / API & engineering docs / RFCs)**: **use the dedicated technical section above, not the blog toolkit.** Suspend Rule 4 (keep term consistency), do not break real lists (Rule 1 targets only rhetorical padding), and obey Rule 6's no-opinion constraint for specs. Human voice here = expert judgment, honest limits, and precision; the work is cutting ceremony and adding "why," not loosening or colloquializing.
 
-## 自检清单（改写后验证）
+## Self-check list (verify after rewriting)
 
-意义（红线）：
-- [ ] 核心论点和结论与原文一致吗？
-- [ ] 所有事实、数字、专有名词和引用都**原样保留、未改动、未编造**吗？
-- [ ] 是否引入了原文没有的信息——包括任何*观点或立场*？（如果有，且文体是事实性的，删掉。）
-- [ ] 文本保持在原语言吗（没有意外翻译）？
+Meaning (red lines):
+- [ ] Are the core claims and conclusions consistent with the original?
+- [ ] Are all facts, numbers, proper nouns, and citations **preserved as-is, unaltered, not fabricated**?
+- [ ] Was any information — including any *opinion or stance* — introduced that wasn't in the original? (If so, and the genre is factual, delete it.)
+- [ ] Was the text kept in its original language (no unintended translation)?
 
-结构与节奏（主要痕迹）：
-- [ ] 还有残留的三段式并列列表/三的法则吗？（打破它们。）
-- [ ] 还有反复出现的"不是 X 而是 Y" / "不仅是……更是……"句式吗？
-- [ ] 条件反射式的加粗、标题或本该是散文的项目符号列表？列表项形状统一吗？
-- [ ] 破折号（或等价物）被过度用作精巧的事后想法吗？
-- [ ] 句长明显长短交替了吗——*且没有*机械的长短长打拍子？
-- [ ] 有连续 3 句以上结构或开头词相同吗？
-- [ ] 还有残留的 AI 脚手架陈词（第一/第二、总之、综上所述、归根结底、ultimately）吗？
-- [ ] 还有只复述前文的冗余总结段吗？
+Structure & rhythm (the main tells):
+- [ ] Any leftover three-part parallel lists / rule-of-three? (Break them.)
+- [ ] Any recurring "not X but Y" / "not just… it's…" frames?
+- [ ] Reflexive bolding, headings, or bullet lists that should be prose? Are list items uniformly shaped?
+- [ ] Em-dashes (or equivalents) overused as neat afterthoughts?
+- [ ] Do sentence lengths clearly alternate long and short — *without* a mechanical long-short-long metronome?
+- [ ] Any run of 3+ sentences with identical structure or opening word?
+- [ ] Any AI scaffolding clichés left (first/second, in conclusion, 综上所述, 归根结底, ultimately)?
+- [ ] Any redundant recap paragraph that only restates prior content?
 
-语态与人性：
-- [ ] 全程是一个一致的叙述者，而非漂移的人格吗？
-- [ ] 有具体细节和真实立场吗，还是仍然空洞、处处对冲？
-- [ ] "人性"被过度表演了吗——太多"说实话 / honestly / to be fair"、太多第一人称插入？
-- [ ] 如果提供了风格样本，结果真的匹配其特征吗？
+Voice & humanity:
+- [ ] Is it one consistent narrator throughout, not a shifting persona?
+- [ ] Is there concrete detail and a real stance, or is it still hollow and uniformly hedged?
+- [ ] Is "humanness" over-performed — too many "honestly / 说实话 / to be fair," too many first-person interjections?
+- [ ] If a style sample was provided, does the result actually match its traits?
 
-仅限技术文本（如果文体是代码/注释/文档/RFC）：
-- [ ] 保留了术语一致性（一个概念 = 一个名字），没有为"意外感"变化吗？
-- [ ] 保留了真实列表/表格/参数序列的统一和完整（没有散文化或打破对称）吗？
-- [ ] 注释携带非显然的"为什么"/不变量/坑信息，而非重述代码明摆着的事吗？
-- [ ] 有真实的判断（选什么、哪里是坑）和对局限的诚实承认——而不是等权重、无观点的编目吗？
-- [ ] 规范/合规/数据描述中避免了口语填充和注入的观点吗？
-- [ ] 砍掉了空洞的繁文缛节（"本节探讨……"、浮夸三段式）同时保留了精确吗？
+Technical text only (if genre is code / comments / docs / RFC):
+- [ ] Did I KEEP term consistency (one concept = one name), not vary it for "surprise"?
+- [ ] Did I KEEP real lists/tables/param sequences uniform and complete (not prose-ify or break symmetry)?
+- [ ] Do comments carry non-obvious "why"/invariant/gotcha info, not restate what the code plainly does?
+- [ ] Is there real judgment (what to pick, what's a trap) and honest admission of limits — not an even, opinion-free catalogue?
+- [ ] Did I avoid colloquial filler and injected opinion in specs/compliance/data descriptions?
+- [ ] Did I cut empty ceremony ("This section explores…", grandiose rule-of-three) while keeping precision?
 
-## 重要提醒
+## Important reminders
 
-- 任何 AI 检测都是**概率判断**。这个 skill 提升自然度、减少机器感，但不保证通过任何特定检测器；检测器每天在更新，不存在稳定的"绕过"方法。
-- 优先正确性和可读性；人的语态是第二位的。冲突时，意义保全优先。
+- Any AI detection is a **probabilistic judgment**. This skill improves naturalness and reduces machine-feel, but does not guarantee passing any specific detector; detectors update daily and no stable "bypass" exists.
+- Prioritize correctness and readability; human voice is secondary. When they conflict, meaning-preservation wins.
